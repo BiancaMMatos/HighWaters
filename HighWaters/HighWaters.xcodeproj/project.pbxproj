@@ -29,9 +29,22 @@
 		D37368062E2FDA78000B4E7C /* HighWatersUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HighWatersUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		D373682E2E3026FE000B4E7C /* Exceptions for "HighWaters" folder in "HighWaters" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = D37367EE2E2FDA75000B4E7C /* HighWaters */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		D37367F12E2FDA75000B4E7C /* HighWaters */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				D373682E2E3026FE000B4E7C /* Exceptions for "HighWaters" folder in "HighWaters" target */,
+			);
 			path = HighWaters;
 			sourceTree = "<group>";
 		};
@@ -322,6 +335,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Precisamos da sua localização para mostrar mapas.";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
@@ -380,6 +394,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Precisamos da sua localização para mostrar mapas.";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
@@ -400,6 +415,9 @@
 				DEVELOPMENT_TEAM = JJ7A9ZQ7BD;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = HighWaters/Info.plist;
+				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "HighWaters needs you to share your location.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "HighWaters needs you to share your location.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -428,6 +446,9 @@
 				DEVELOPMENT_TEAM = JJ7A9ZQ7BD;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = HighWaters/Info.plist;
+				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "HighWaters needs you to share your location.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "HighWaters needs you to share your location.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

@@ -11,7 +11,7 @@ import SwiftUI
 struct HighWatersApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            MapView()
         }
     }
 }

@@ -7,7 +7,6 @@
 
 import CoreLocation
 
-
 class LocationManager: NSObject, ObservableObject {
     
     private let manager = CLLocationManager()

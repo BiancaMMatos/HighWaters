@@ -8,8 +8,27 @@
 import SwiftUI
 
 struct MapView: View {
+    
+    @StateObject private var viewModel = LocationViewModel()
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        ZStack(alignment: .bottomTrailing) {
+            LocationView(region: $viewModel.region,
+                         annotations: viewModel.annotations
+            )
+            .ignoresSafeArea(.all)
+            
+            Button(action: {
+                viewModel.centerToUser()
+            }, label: {
+                Image(systemName: "location.fill")
+                    .padding()
+                    .background(Circle().fill(Color.white))
+                    .shadow(radius: 3)
+            })
+            .padding()
+            
+        }
     }
 }
 

@@ -32,7 +32,7 @@ class LocationViewModel: ObservableObject {
         
         withAnimation {
             region.center = userLocation
-            region.span = MKCoordinateSpan(latitudeDelta: 0.02, longitudeDelta: 0.02)
+            region.span = MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
         }
     }
     
@@ -41,6 +41,7 @@ class LocationViewModel: ObservableObject {
         if !isEqual(coordinate: coordinate) { /// Avoiding duplicity
             let annotation = MKPointAnnotation()
             annotation.title = title
+            annotation.subtitle = "Reported on \(Date())"
             annotation.coordinate = coordinate
             annotations.append(annotation)
         }

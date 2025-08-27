@@ -44,7 +44,6 @@ struct MapView: View {
                 .padding()
             }
             
-            
         }
     }
 }

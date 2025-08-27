@@ -2,89 +2,67 @@
 //  LocationViewModel.swift
 //  HighWaters
 //
-//  Created by Bianca Maciel on 22/07/25.
+//  Created by Bianca Maciel on 25/08/25.
 //
 
 import MapKit
 import SwiftUI
-import Foundation
-import CoreLocation
 
-
-final class LocationViewModel: NSObject, ObservableObject {
+class LocationViewModel: ObservableObject {
     
     // MARK: - Properties
-    private var mapView: MKMapView?
-    private lazy var locationManager: CLLocationManager = {
-        let manager = CLLocationManager()
-        manager.desiredAccuracy = kCLLocationAccuracyBest
-        manager.distanceFilter = kCLDistanceFilterNone
-        manager.requestWhenInUseAuthorization()
-        
-        return manager
-    }()
+    @Published var region = MKCoordinateRegion(
+        center: CLLocationCoordinate2D(latitude: -23.5505, longitude: -46.6333),
+        span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
+    )
     
-    // MARK: - Published Properties
-    @Published var userLocation: CLLocationCoordinate2D?
-    @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined
-    @Published var cameraPosition: MapCameraPosition = .automatic
     @Published var annotations: [MKPointAnnotation] = []
+    private let locationManager = LocationManager()
     
-    // MARK: - Initializor
-    override init() {
-        super.init()
-        setupLocationManager()
-        setupMapView()
+    
+    // MARK: - Init
+    init() {
+        locationManager.startUpdating()
     }
     
-    // MARK: - Setup
-    private func setupLocationManager() {
-        locationManager.delegate = self
-        locationManager.startUpdatingLocation()
-    }
     
-    private func setupMapView() {
-        self.mapView?.showsUserLocation = true
-        self.mapView?.delegate = self
-    }
-    
-    // MARK: - Actions
-    func addFlood() throws {
+    // MARK: - Functions
+    func centerToUser() {
+        guard let userLocation = locationManager.currentLocation else { return }
         
-        guard let location = self.locationManager.location else { return }
-        
-        let annotation = MKPointAnnotation()
-        annotation.coordinate = location.coordinate
-        
-        annotations.append(annotation)
-        
-    }
-    
-}
-
-// MARK: - CLLocationManagerDelegate
-extension LocationViewModel: CLLocationManagerDelegate {
-    
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        guard let location = locations.last else { return }
-        userLocation = location.coordinate
-        
-    }
-    
-}
-
-// MARK: - MKMapViewDelegate
-extension LocationViewModel: MKMapViewDelegate {
-    
-    func mapView(_ mapView: MKMapView, didUpdate userLocation: MKUserLocation) {
-        
-        if let mapView = self.mapView  {
-            let region = MKCoordinateRegion(center: mapView.userLocation.coordinate, span: MKCoordinateSpan(latitudeDelta: 0.08, longitudeDelta: 0.08))
-            self.mapView?.setRegion(region, animated: true)
+        withAnimation {
+            region.center = userLocation
+            region.span = MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
         }
-        
-        
+    }
+    
+    
+    func addAnnotation(at coordinate: CLLocationCoordinate2D, title: String) {
+        if !isEqual(coordinate: coordinate) { /// Avoiding duplicity
+            let annotation = MKPointAnnotation()
+            annotation.title = title
+            annotation.subtitle = "Reported on \(Date())"
+            annotation.coordinate = coordinate
+            annotations.append(annotation)
+        }
+    }
+    
+    func removeAnnotation(at coordinate: CLLocationCoordinate2D) {
+        annotations.removeAll {
+            $0.coordinate.latitude == coordinate.latitude &&
+            $0.coordinate.longitude == coordinate.longitude
+        }
+    }
+    
+    private func isEqual(coordinate: CLLocationCoordinate2D) -> Bool {
+        return (annotations.contains {
+            $0.coordinate.latitude == coordinate.latitude &&
+            $0.coordinate.longitude == coordinate.longitude
+        })
     }
     
 }
+
+
+
 

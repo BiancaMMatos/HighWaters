@@ -2,65 +2,69 @@
 //  MapView.swift
 //  HighWaters
 //
-//  Created by Bianca Maciel on 22/07/25.
+//  Created by Bianca Maciel on 25/08/25.
 //
 
-import MapKit
 import SwiftUI
-import CoreLocation
 
 struct MapView: View {
     
-    @StateObject private var locationViewModel = LocationViewModel()
+    @State private var floodCount: Int = 0
+    @StateObject private var viewModel = LocationViewModel()
     
     var body: some View {
-        ZStack {
-            GeometryReader { reader in
-                Map(position: $locationViewModel.cameraPosition, interactionModes: .all) {
-                    UserAnnotation()
-                    
-                    ForEach(locationViewModel.annotations, id: \.self) {
-                        Marker("Flooded", coordinate: $0.coordinate)
-                    }
-                    
-                }
-                .mapControls {
-                    MapUserLocationButton()
-                }
-                
-                
-                Button {
-                    addFlood()
-                    
-                } label: {
-                    Text("Add flood")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(.purple)
-                .controlSize(.large)
-                .frame(width: 150)
-                .padding(.horizontal, (reader.size.width * 0.33))
-                .padding(.vertical, (reader.size.height * 0.85))
-                
-            }
+        ZStack(alignment: .bottomTrailing) {
+            LocationView(region: $viewModel.region,
+                         annotations: viewModel.annotations
+            )
+            .ignoresSafeArea(.all)
             
+            HStack(alignment: .center) {
+                Button(action: {
+                    addFloodAnnotation()
+                }, label: {
+                    Text("Add Flood")
+                        .bold()
+                        .padding()
+                        .background(Color.purple)
+                        .foregroundStyle(.white)
+                        .clipShape(.buttonBorder)
+                })
+                .padding(.horizontal, 50)
+                .padding(.vertical, 15)
+                
+                Button(action: {
+                    viewModel.centerToUser()
+                }, label: {
+                    Image(systemName: "location.fill")
+                        .padding()
+                        .background(Circle().fill(Color.white))
+                        .shadow(radius: 3)
+                })
+                .padding()
+            }
             
         }
     }
 }
 
+
 extension MapView {
     
-    private func addFlood() {
-        do {
-            try locationViewModel.addFlood()
-        } catch {
-            print("Erro ao adicionar inundação")
-        }
+    private func addFloodAnnotation() {
+        /// Getting where the user is
+        let centerOfCoordinate = viewModel.region.center
+        
+        /// Adding a new annotation
+        viewModel.addAnnotation(at: centerOfCoordinate,
+                                title: "Flood #\(floodCount + 1)"
+        )
+        
+        floodCount += 1
     }
     
 }
+
 
 #Preview {
     MapView()

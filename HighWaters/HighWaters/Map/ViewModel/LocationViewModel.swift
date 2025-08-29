@@ -18,15 +18,17 @@ class LocationViewModel: ObservableObject {
     
     @Published var annotations: [MKPointAnnotation] = []
     private let locationManager = LocationManager()
+    private let repository: FloodRepository
     
     
     // MARK: - Init
-    init() {
+    init(repository: FloodRepository) {
         locationManager.startUpdating()
+        self.repository = repository
     }
     
     
-    // MARK: - Functions
+    // MARK: - Location Functions
     func centerToUser() {
         guard let userLocation = locationManager.currentLocation else { return }
         
@@ -41,7 +43,6 @@ class LocationViewModel: ObservableObject {
         if !isEqual(coordinate: coordinate) { /// Avoiding duplicity
             let annotation = MKPointAnnotation()
             annotation.title = title
-            annotation.subtitle = "Reported on \(Date())"
             annotation.coordinate = coordinate
             annotations.append(annotation)
         }
@@ -61,6 +62,13 @@ class LocationViewModel: ObservableObject {
         })
     }
     
+    // MARK: - Firestore Functions
+    func saveFlood() {
+        guard let location = locationManager.currentLocation else { return }
+        let floodReport = FloodReport(latitude: location.latitude, longitude: location.longitude)
+        
+        repository.saveFlood(floodReport)
+    }
 }
 
 

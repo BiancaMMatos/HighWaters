@@ -10,7 +10,7 @@ import SwiftUI
 struct MapView: View {
     
     @State private var floodCount: Int = 0
-    @StateObject private var viewModel = LocationViewModel()
+    @StateObject private var viewModel = LocationViewModel(repository: FloodRepositoryImpl())
     
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
@@ -59,6 +59,8 @@ extension MapView {
         viewModel.addAnnotation(at: centerOfCoordinate,
                                 title: "Flood #\(floodCount + 1)"
         )
+        
+        viewModel.saveFlood()
         
         floodCount += 1
     }

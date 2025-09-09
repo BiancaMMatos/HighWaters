@@ -67,8 +67,9 @@ class LocationViewModel: ObservableObject {
         guard let location = locationManager.currentLocation else { return }
         let floodReport = FloodReport(latitude: location.latitude, longitude: location.longitude)
         
-        repository.saveFlood(floodReport)
+        repository.saveNewFlood(floodReport)
     }
+
 }
 
 

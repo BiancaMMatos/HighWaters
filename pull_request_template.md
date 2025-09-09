@@ -1,5 +1,9 @@
 ## Description
-<!-- Explain the purpose of this PR. What has been changed/implemented? -->
+<h3>Accepting this PR will allow the App to:</h3>
+<ul>
+<li>Reason 1</li>
+<li>Reason 2</li>
+</ul>
 
 ## Type of Change
 - [ ] 🐛 Bug fix

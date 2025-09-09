@@ -31,7 +31,7 @@ struct MapView: View {
                     Text("Add Flood")
                         .bold()
                         .padding()
-                        .background(Color.purple)
+                        .background(Color.defaultBlue)
                         .foregroundStyle(.white)
                         .clipShape(.buttonBorder)
                 })

@@ -15,16 +15,18 @@ class LocationViewModel: ObservableObject {
         center: CLLocationCoordinate2D(latitude: -23.5505, longitude: -46.6333),
         span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
     )
-    
+     
+    @Published var isLoading: Bool = true
+    @Published var showError: Bool = false
     @Published var annotations: [MKPointAnnotation] = []
     private let locationManager = LocationManager()
-    private let repository: FloodRepository
+    private let service: FloodServiceProtocol = FloodService()
     
     
     // MARK: - Init
-    init(repository: FloodRepository) {
+    init() {
         locationManager.startUpdating()
-        self.repository = repository
+        observeFloods()
     }
     
     
@@ -66,10 +68,39 @@ class LocationViewModel: ObservableObject {
     func saveFlood() {
         guard let location = locationManager.currentLocation else { return }
         let floodReport = FloodReport(latitude: location.latitude, longitude: location.longitude)
-        
-        repository.saveNewFlood(floodReport)
+        service.saveFlood(floodReport)
     }
-
+    
+    func observeFloods() {
+        isLoading = true
+        service.observeFloods { [weak self] result in
+            DispatchQueue.main.async {
+                self?.isLoading = false
+                switch result {
+                case .success(let floods):
+                    self?.annotations.removeAll()
+                    floods?.forEach {
+                        self?.addAnnotation(at: CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude),
+                                            title: "Flood")
+                    }
+                    self?.showError = false
+                    
+                case .failure(let error):
+                    print("🚨 Firebase Error: \(error.localizedDescription)")
+                    self?.annotations.removeAll()
+                    self?.showError = true
+                }
+            }
+        }
+        
+    }
+    
+    
+    // MARK: - Deinit
+    deinit {
+        service.removeFloodListener()
+    }
+    
 }
 
 

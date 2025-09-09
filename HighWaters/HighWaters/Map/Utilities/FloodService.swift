@@ -8,46 +8,30 @@
 import Foundation
 
 protocol FloodServiceProtocol {
-    func reportFloods(completion: @escaping (Result<[FloodReport]?, Error>) -> Void) throws
-    func updateFloods(_ floods: [FloodReport])
+    func removeFloodListener()
+    func saveFlood(_ report: FloodReport)
+    func observeFloods(update: @escaping (Result<[FloodReport]?, Error>) -> Void)
 }
 
 
 final class FloodService: FloodServiceProtocol {
     
-    let repository: FloodRepository
+    let repository: FloodRepository = FloodRepositoryImpl()
     
-    init(repository: FloodRepository) {
-        self.repository = repository
+    func observeFloods(update: @escaping (Result<[FloodReport]?, any Error>) -> Void) {
+        repository.observeFloods(update: update)
     }
     
-    func reportFloods(completion: @escaping (Result<[FloodReport]?, any Error>) -> Void) throws {
-        do {
-            try repository.fetchFloods { [weak self] result in
-                switch result {
-                case .success(let floods):
-                    if let floods = floods {
-                        self?.updateFloods(floods)
-                    }
-                    completion(.success(floods))
-                    
-                case .failure(let error):
-                    completion(.failure(error))
-                }
-            }
-        } catch {
-            throw FloodError.firebaseError(description: error.localizedDescription)
+    func saveFlood(_ report: FloodReport) {
+        repository.saveNewFlood(report)
+    }
+    
+    func removeFloodListener() {
+        if let repo = repository as? FloodRepositoryImpl {
+            repo.removeListener()
         }
     }
     
-    func updateFloods(_ floods: [FloodReport]) {
-        DispatchQueue.main.async {
-            floods.forEach {
-                self.repository.saveNewFlood($0)
-            }
-        }
-    }
-
 }
 
 
@@ -57,7 +41,7 @@ enum FloodError: Error, LocalizedError {
     var errorDescription: String? {
         switch self {
         case .firebaseError(let description):
-            "Firebase error: \(description)"
+            "🚨 Firebase error: \(description)"
         }
     }
 }

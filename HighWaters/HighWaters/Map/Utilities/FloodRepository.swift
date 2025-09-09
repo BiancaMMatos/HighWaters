@@ -10,7 +10,7 @@ import FirebaseFirestore
 
 
 protocol FloodRepository {
-    func fetchFloods(completion: @escaping (Result<[FloodReport], Error>) -> Void) throws
+    func fetchFloods(completion: @escaping (Result<[FloodReport]?, Error>) -> Void) throws
     func saveNewFlood(_ report: FloodReport)
 }
 
@@ -25,7 +25,7 @@ final class FloodRepositoryImpl: FloodRepository {
     }()
     
     
-    func fetchFloods(completion: @escaping (Result<[FloodReport], any Error>) -> Void) throws {
+    func fetchFloods(completion: @escaping (Result<[FloodReport]?, any Error>) -> Void) throws {
         self.db.collection("flooded-regions").addSnapshotListener { snapshot, error in
             
             guard let snapshot = snapshot, error == nil else {
@@ -38,7 +38,7 @@ final class FloodRepositoryImpl: FloodRepository {
                 if diff.type == .added {
                     if let flood = FloodReport(diff.document) {
                         self?.floods.append(flood)
-                        self?.updateAnnotations()
+                        completion(.success(self?.floods))
                     }
                     
                     
@@ -47,7 +47,7 @@ final class FloodRepositoryImpl: FloodRepository {
                         if let floods = self?.floods {
                             self?.floods = floods.filter({ $0.documentID != flood.documentID })
                         }
-                        self?.updateAnnotations()
+                        completion(.success(self?.floods))
                     }
                 }
             }
@@ -72,25 +72,17 @@ final class FloodRepositoryImpl: FloodRepository {
                     case .dataLoss:
                         print("⚠️ Error: Losted data, \(firestoreError.localizedDescription). Code: \(firestoreError.errorCode)")
                     default:
-                        print("⚠️ Error: \(firestoreError.errorCode)")
+                        print("⚠️ Error: \(firestoreError.localizedDescription). Code: \(firestoreError.errorCode)")
                     }
                     
-                    
-                    
-                } else if let documentID = documentRef?.documentID {
-                    var updatedReport = report
-                    updatedReport.documentID = documentID
                 }
+                
+            } else if let documentID = documentRef?.documentID {
+                var updatedReport = report
+                updatedReport.documentID = documentID
             }
         }
         
     }
     
-    private func updateAnnotations() {
-        DispatchQueue.main.async {
-            self.floods.forEach {
-                self.saveNewFlood($0)
-            }
-        }
-    }
 }

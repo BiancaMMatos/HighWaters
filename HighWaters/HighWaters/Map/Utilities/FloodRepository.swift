@@ -10,11 +10,14 @@ import FirebaseFirestore
 
 
 protocol FloodRepository {
+    var floods: [FloodReport] { get set }
     func saveFlood(_ report: FloodReport)
+    func configureObserves()
 }
 
 
 final class FloodRepositoryImpl: FloodRepository {
+    var floods: [FloodReport] = [FloodReport]()
     
     private lazy var db: Firestore = {
         let firestoreDB = Firestore.firestore()
@@ -26,7 +29,7 @@ final class FloodRepositoryImpl: FloodRepository {
         
         var documentRef: DocumentReference? = nil
         
-        documentRef = self.db.collection("flooded-regions").addDocument(data: report.toDictionary()) { error in
+        documentRef = self.db.collection("flooded-regions").addDocument(data: report.toDictionary() as [String : Any]) { error in
             
             if let error {
                 print("Error: \(error)")
@@ -37,6 +40,45 @@ final class FloodRepositoryImpl: FloodRepository {
             }
         }
     }
+    
+    private func updateAnnotations() {
+        DispatchQueue.main.async {
+            self.floods.forEach {
+                self.saveFlood($0)
+            }
+        }
+    }
+    
+    func configureObserves() {
+        self.db.collection("flooded-regions").addSnapshotListener { snapshot, error in
+            
+            guard let snapshot = snapshot, error == nil else {
+                print("Error fetch document. Error: \(error?.localizedDescription ?? "not found")")
+                return
+            }
+            
+            snapshot.documentChanges.forEach { [weak self] diff in
+                
+                if diff.type == .added {
+                    if let flood = FloodReport(diff.document) {
+                        self?.floods.append(flood)
+                        self?.updateAnnotations()
+                    }
+                    
+                    
+                } else if diff.type == .removed {
+                    if let flood = FloodReport(diff.document) {
+                        if let floods = self?.floods {
+                            self?.floods = floods.filter({ $0.documentID != flood.documentID })
+                        }
+                        self?.updateAnnotations()
+                    }
+                }
+            }
+        }
+        
+    }
+    
     
     
 }

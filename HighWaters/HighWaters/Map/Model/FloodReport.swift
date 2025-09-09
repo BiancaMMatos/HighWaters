@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import FirebaseFirestore
 
 struct FloodReport: Codable {
     var documentID: String?
@@ -20,6 +21,17 @@ extension FloodReport {
     init(latitude: Double, longitude: Double) {
         self.latitude = latitude
         self.longitude = longitude
+    }
+    
+    init?(_ snapshot: QueryDocumentSnapshot)  {
+        guard let latitude = snapshot["latitude"] as? Double,
+              let longitude = snapshot["longitude"] as? Double else {
+            return nil
+        }
+        
+        self.latitude = latitude
+        self.longitude = longitude
+        self.documentID = snapshot.documentID
     }
     
     

@@ -10,47 +10,33 @@ import FirebaseFirestore
 
 
 protocol FloodRepository {
-    func fetchFloods(completion: @escaping (Result<[FloodReport]?, Error>) -> Void) throws
     func saveNewFlood(_ report: FloodReport)
+    func observeFloods(update: @escaping (Result<[FloodReport]?, Error>) -> Void)
 }
 
 
 final class FloodRepositoryImpl: FloodRepository {
     
     var floods: [FloodReport] = [FloodReport]()
-    
+    private var listener: ListenerRegistration?
     private lazy var db: Firestore = {
         let firestoreDB = Firestore.firestore()
         return firestoreDB
     }()
     
     
-    func fetchFloods(completion: @escaping (Result<[FloodReport]?, any Error>) -> Void) throws {
-        self.db.collection("flooded-regions").addSnapshotListener { snapshot, error in
-            
-            guard let snapshot = snapshot, error == nil else {
-                print("🚨 Error fetch document. Error: \(error?.localizedDescription ?? "not found")")
+    func observeFloods(update: @escaping (Result<[FloodReport]?, any Error>) -> Void) {
+        listener = db.collection("flooded-regions").addSnapshotListener { snapshot, error in
+            if let error = error {
+                update(.failure(error))
                 return
             }
-            
-            snapshot.documentChanges.forEach { [weak self] diff in
-                
-                if diff.type == .added {
-                    if let flood = FloodReport(diff.document) {
-                        self?.floods.append(flood)
-                        completion(.success(self?.floods))
-                    }
-                    
-                    
-                } else if diff.type == .removed {
-                    if let flood = FloodReport(diff.document) {
-                        if let floods = self?.floods {
-                            self?.floods = floods.filter({ $0.documentID != flood.documentID })
-                        }
-                        completion(.success(self?.floods))
-                    }
-                }
+            guard let snapshot = snapshot else {
+                update(.failure(FloodError.firebaseError(description: "⚠️ Error: Snapshot nil")))
+                return
             }
+            let floods = snapshot.documents.compactMap { FloodReport($0) }
+            update(.success(floods))
         }
     }
     
@@ -64,17 +50,7 @@ final class FloodRepositoryImpl: FloodRepository {
                 print("🚨 Error: \(error.localizedDescription)")
                 
                 if let firestoreError = error as? FirestoreErrorCode {
-                    switch firestoreError.code {
-                    case .aborted:
-                        print("⚠️ Error: Aborted action, \(firestoreError.localizedDescription). Code: \(firestoreError.errorCode)")
-                    case .alreadyExists:
-                        print("⚠️ Error: Already exists, \(firestoreError.localizedDescription). Code: \(firestoreError.errorCode)")
-                    case .dataLoss:
-                        print("⚠️ Error: Losted data, \(firestoreError.localizedDescription). Code: \(firestoreError.errorCode)")
-                    default:
-                        print("⚠️ Error: \(firestoreError.localizedDescription). Code: \(firestoreError.errorCode)")
-                    }
-                    
+                    print("⚠️ Error: \(firestoreError.localizedDescription). Code: \(firestoreError.errorCode)")
                 }
                 
             } else if let documentID = documentRef?.documentID {
@@ -82,7 +58,10 @@ final class FloodRepositoryImpl: FloodRepository {
                 updatedReport.documentID = documentID
             }
         }
-        
+    }
+    
+    func removeListener() {
+        listener?.remove()
     }
     
 }

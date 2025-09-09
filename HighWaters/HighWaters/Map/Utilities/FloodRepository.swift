@@ -10,13 +10,13 @@ import FirebaseFirestore
 
 
 protocol FloodRepository {
-    var floods: [FloodReport] { get set }
-    func saveFlood(_ report: FloodReport)
-    func configureObserves()
+    func fetchFloods(completion: @escaping (Result<[FloodReport], Error>) -> Void) throws
+    func saveNewFlood(_ report: FloodReport)
 }
 
 
 final class FloodRepositoryImpl: FloodRepository {
+    
     var floods: [FloodReport] = [FloodReport]()
     
     private lazy var db: Firestore = {
@@ -25,35 +25,11 @@ final class FloodRepositoryImpl: FloodRepository {
     }()
     
     
-    func saveFlood(_ report: FloodReport) {
-        
-        var documentRef: DocumentReference? = nil
-        
-        documentRef = self.db.collection("flooded-regions").addDocument(data: report.toDictionary() as [String : Any]) { error in
-            
-            if let error {
-                print("Error: \(error)")
-                
-            } else if let documentID = documentRef?.documentID {
-                var updatedReport = report
-                updatedReport.documentID = documentID
-            }
-        }
-    }
-    
-    private func updateAnnotations() {
-        DispatchQueue.main.async {
-            self.floods.forEach {
-                self.saveFlood($0)
-            }
-        }
-    }
-    
-    func configureObserves() {
+    func fetchFloods(completion: @escaping (Result<[FloodReport], any Error>) -> Void) throws {
         self.db.collection("flooded-regions").addSnapshotListener { snapshot, error in
             
             guard let snapshot = snapshot, error == nil else {
-                print("Error fetch document. Error: \(error?.localizedDescription ?? "not found")")
+                print("🚨 Error fetch document. Error: \(error?.localizedDescription ?? "not found")")
                 return
             }
             
@@ -76,9 +52,45 @@ final class FloodRepositoryImpl: FloodRepository {
                 }
             }
         }
+    }
+    
+    func saveNewFlood(_ report: FloodReport)  {
+        var documentRef: DocumentReference? = nil
+        
+        documentRef = self.db.collection("flooded-regions").addDocument(data: report.toDictionary() as [String : Any]) { error in
+            
+            if let error {
+                
+                print("🚨 Error: \(error.localizedDescription)")
+                
+                if let firestoreError = error as? FirestoreErrorCode {
+                    switch firestoreError.code {
+                    case .aborted:
+                        print("⚠️ Error: Aborted action, \(firestoreError.localizedDescription). Code: \(firestoreError.errorCode)")
+                    case .alreadyExists:
+                        print("⚠️ Error: Already exists, \(firestoreError.localizedDescription). Code: \(firestoreError.errorCode)")
+                    case .dataLoss:
+                        print("⚠️ Error: Losted data, \(firestoreError.localizedDescription). Code: \(firestoreError.errorCode)")
+                    default:
+                        print("⚠️ Error: \(firestoreError.errorCode)")
+                    }
+                    
+                    
+                    
+                } else if let documentID = documentRef?.documentID {
+                    var updatedReport = report
+                    updatedReport.documentID = documentID
+                }
+            }
+        }
         
     }
     
-    
-    
+    private func updateAnnotations() {
+        DispatchQueue.main.async {
+            self.floods.forEach {
+                self.saveNewFlood($0)
+            }
+        }
+    }
 }

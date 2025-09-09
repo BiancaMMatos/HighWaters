@@ -14,10 +14,15 @@ struct MapView: View {
     
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
-            LocationView(region: $viewModel.region,
-                         annotations: viewModel.annotations
-            )
-            .ignoresSafeArea(.all)
+            if viewModel.isLoading {
+                LoadingView()
+                    .ignoresSafeArea(.all)
+            } else {
+                LocationView(region: $viewModel.region,
+                             annotations: viewModel.annotations
+                )
+                .ignoresSafeArea(.all)
+            }
             
             HStack(alignment: .center) {
                 Button(action: {
@@ -43,7 +48,13 @@ struct MapView: View {
                 })
                 .padding()
             }
-            
+        }
+        .alert(isPresented: $viewModel.showError) {
+            Alert(
+                title: Text("Error fetch floods"),
+                message: Text("The flood data could not be loaded. The map will be displayed without markers"),
+                dismissButton: .default(Text("OK"))
+            )
         }
     }
 }
@@ -59,6 +70,8 @@ extension MapView {
         viewModel.addAnnotation(at: centerOfCoordinate,
                                 title: "Flood #\(floodCount + 1)"
         )
+        
+        viewModel.saveFlood()
         
         floodCount += 1
     }

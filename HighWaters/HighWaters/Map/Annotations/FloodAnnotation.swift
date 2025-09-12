@@ -13,7 +13,7 @@ import Foundation
 final class FloodAnnotation: MKPointAnnotation {
     let flood: FloodReport
     
-    init(flood: FloodReport) {
+    init(_ flood: FloodReport) {
         self.flood = flood
     }
 }

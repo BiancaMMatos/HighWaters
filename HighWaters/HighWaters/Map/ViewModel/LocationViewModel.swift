@@ -15,7 +15,7 @@ class LocationViewModel: ObservableObject {
         center: CLLocationCoordinate2D(latitude: -23.5505, longitude: -46.6333),
         span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
     )
-     
+    
     @Published var isLoading: Bool = true
     @Published var showError: Bool = false
     @Published var annotations: [MKPointAnnotation] = []
@@ -32,20 +32,22 @@ class LocationViewModel: ObservableObject {
     
     // MARK: - Location Functions
     func centerToUser() {
-        guard let userLocation = locationManager.currentLocation else { return }
-        
-        withAnimation {
-            region.center = userLocation
-            region.span = MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+        if let userRegion = locationManager.centerToUserRegion() {
+            withAnimation {
+                region = userRegion
+            }
         }
     }
     
     
-    func addAnnotation(at coordinate: CLLocationCoordinate2D, title: String) {
-        if !isEqual(coordinate: coordinate) { /// Avoiding duplicity
-            let annotation = MKPointAnnotation()
-            annotation.title = title
-            annotation.coordinate = coordinate
+    func addAnnotation(_ flood: FloodReport) {
+        let floodCoordinate = CLLocationCoordinate2D(latitude: flood.latitude, longitude: flood.longitude)
+        
+        if !isEqual(coordinate: floodCoordinate) { /// Avoiding duplicity
+            let annotation = FloodAnnotation(flood)
+            annotation.title = "Flooded"
+            annotation.subtitle = flood.reportedDate.formatAsString()
+            annotation.coordinate = floodCoordinate
             annotations.append(annotation)
         }
     }
@@ -80,8 +82,9 @@ class LocationViewModel: ObservableObject {
                 case .success(let floods):
                     self?.annotations.removeAll()
                     floods?.forEach {
-                        self?.addAnnotation(at: CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude),
-                                            title: "Flood")
+                        self?.addAnnotation(.init(latitude: $0.latitude,
+                                                  longitude: $0.longitude)
+                        )
                     }
                     self?.showError = false
                     

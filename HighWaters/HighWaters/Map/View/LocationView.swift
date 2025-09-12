@@ -19,13 +19,13 @@ struct LocationView: UIViewRepresentable {
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
-
+    
     func makeUIView(context: Context) -> MKMapView {
-        let locationView = MKMapView()
-        locationView.delegate = context.coordinator
-        locationView.showsUserLocation = true /// Shows user location
+        let mapView = MKMapView()
+        mapView.delegate = context.coordinator
+        mapView.showsUserLocation = true /// Shows user location
         
-        return locationView
+        return mapView
     }
     
     func updateUIView(_ uiView: MKMapView, context: Context) {
@@ -42,6 +42,27 @@ struct LocationView: UIViewRepresentable {
         init(_ parent: LocationView) {
             self.parent = parent
         }
+        
+        func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? { /// It's going to provide a particular view for a particular annotation
+            
+            if annotation is MKUserLocation { /// Nothing will happen to the current location of the user
+                return nil
+            }
+            
+            var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: "FloodAnnotationView")
+            
+            if annotationView == nil {
+                annotationView = MKAnnotationView(annotation: annotation, reuseIdentifier: "FloodAnnotationView")
+                annotationView?.canShowCallout = true
+                annotationView?.image = UIImage(named: "flood-annotation")
+                annotationView?.rightCalloutAccessoryView = UIButton.buttonForRightAccessoryView()
+                
+            }
+            
+            return annotationView
+            
+        }
+        
     }
 }
 

@@ -63,14 +63,8 @@ struct MapView: View {
 extension MapView {
     
     private func addFloodAnnotation() {
-        /// Getting where the user is
-        let centerOfCoordinate = viewModel.region.center
         
         /// Adding a new annotation
-        viewModel.addAnnotation(at: centerOfCoordinate,
-                                title: "Flood #\(floodCount + 1)"
-        )
-        
         viewModel.saveFlood()
         
         floodCount += 1

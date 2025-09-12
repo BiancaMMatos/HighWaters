@@ -14,14 +14,22 @@ struct MapView: View {
     
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
-            if viewModel.isLoading {
-                LoadingView()
-                    .ignoresSafeArea(.all)
-            } else {
+            if !viewModel.isLoading {
                 LocationView(region: $viewModel.region,
-                             annotations: viewModel.annotations
-                )
+                             annotations: viewModel.annotations)
                 .ignoresSafeArea(.all)
+            }
+            
+            if viewModel.isLoading {
+                /// Adding View behind Loading
+                LocationView(region: $viewModel.region,
+                             annotations: viewModel.annotations)
+                .ignoresSafeArea(.all)
+                
+                LoadingView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color.black.opacity(0.4))
+                    .ignoresSafeArea(.all)
             }
             
             HStack(alignment: .center) {
@@ -48,6 +56,7 @@ struct MapView: View {
                 })
                 .padding()
             }
+            .padding(.top, 15)
         }
         .alert(isPresented: $viewModel.showError) {
             Alert(

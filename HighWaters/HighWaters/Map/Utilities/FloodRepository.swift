@@ -32,19 +32,17 @@ final class FloodRepositoryImpl: FloodRepository {
     func saveNewFlood(_ report: FloodReport)  {
         var documentRef: DocumentReference? = nil
         
-        documentRef = self.db.collection("flooded-regions").addDocument(data: report.toDictionary() as [String : Any]) { error in
-            
+        documentRef = self.db.collection("flooded-regions").addDocument(
+            data: report.toDictionary() as [String : Any]
+        ) { error in
             if let error {
-                
-                print("🚨 Error: \(error.localizedDescription)")
-                
-                if let firestoreError = error as? FirestoreErrorCode {
-                    print("⚠️ Error: \(firestoreError.localizedDescription). Code: \(firestoreError.errorCode)")
-                }
-                
+                print("⚠️ Error: \(error.localizedDescription)")
             } else if let documentID = documentRef?.documentID {
-                var updatedReport = report
-                updatedReport.documentID = documentID
+                documentRef?.updateData(["documentID": documentID]) { error in
+                    if let error = error {
+                        print("Error updating document: \(error)")
+                    }
+                }
             }
         }
     }
@@ -59,8 +57,22 @@ final class FloodRepositoryImpl: FloodRepository {
                 update(.failure(FloodError.firebaseError(description: "⚠️ Error: Snapshot nil")))
                 return
             }
-            let floods = snapshot.documents.compactMap { FloodReport($0) }
-            update(.success(floods))
+            
+            snapshot.documentChanges.forEach { diff in
+                
+                if diff.type == .added {
+                    if let flood = FloodReport(diff.document) {
+                        self.floods.append(flood)
+                        update(.success(self.floods))
+                    }
+                } else if diff.type == .removed {
+                    if let flood = FloodReport(diff.document) {
+                        self.floods = self.floods.filter { $0.documentID != flood.documentID }
+                        update(.success(self.floods))
+                    }
+                }
+                
+            }
         }
     }
     

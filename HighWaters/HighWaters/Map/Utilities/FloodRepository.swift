@@ -10,6 +10,7 @@ import FirebaseFirestore
 
 
 protocol FloodRepository {
+    func deleteFlood(_ report: FloodReport)
     func saveNewFlood(_ report: FloodReport)
     func observeFloods(update: @escaping (Result<[FloodReport]?, Error>) -> Void)
 }
@@ -24,22 +25,10 @@ final class FloodRepositoryImpl: FloodRepository {
         return firestoreDB
     }()
     
-    
-    func observeFloods(update: @escaping (Result<[FloodReport]?, any Error>) -> Void) {
-        listener = db.collection("flooded-regions").addSnapshotListener { snapshot, error in
-            if let error = error {
-                update(.failure(error))
-                return
-            }
-            guard let snapshot = snapshot else {
-                update(.failure(FloodError.firebaseError(description: "⚠️ Error: Snapshot nil")))
-                return
-            }
-            let floods = snapshot.documents.compactMap { FloodReport($0) }
-            update(.success(floods))
-        }
+    func deleteFlood(_ report: FloodReport) {
+        
     }
-    
+
     func saveNewFlood(_ report: FloodReport)  {
         var documentRef: DocumentReference? = nil
         
@@ -57,6 +46,21 @@ final class FloodRepositoryImpl: FloodRepository {
                 var updatedReport = report
                 updatedReport.documentID = documentID
             }
+        }
+    }
+    
+    func observeFloods(update: @escaping (Result<[FloodReport]?, any Error>) -> Void) {
+        listener = db.collection("flooded-regions").addSnapshotListener { snapshot, error in
+            if let error = error {
+                update(.failure(error))
+                return
+            }
+            guard let snapshot = snapshot else {
+                update(.failure(FloodError.firebaseError(description: "⚠️ Error: Snapshot nil")))
+                return
+            }
+            let floods = snapshot.documents.compactMap { FloodReport($0) }
+            update(.success(floods))
         }
     }
     

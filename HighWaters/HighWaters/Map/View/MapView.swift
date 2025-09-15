@@ -72,13 +72,9 @@ struct MapView: View {
 extension MapView {
     
     private func addFloodAnnotation() {
-        
-        /// Adding a new annotation
-        viewModel.saveFlood()
-        
+        viewModel.saveFlood() /// Adding a new annotation
         floodCount += 1
     }
-    
 }
 
 

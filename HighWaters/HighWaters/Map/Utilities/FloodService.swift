@@ -36,10 +36,13 @@ final class FloodService: FloodServiceProtocol {
 
 
 enum FloodError: Error, LocalizedError {
+    case custom(description: String)
     case firebaseError(description: String)
     
     var errorDescription: String? {
         switch self {
+        case .custom(let description):
+            "⚠️ Error: \(description)"
         case .firebaseError(let description):
             "🚨 Firebase error: \(description)"
         }

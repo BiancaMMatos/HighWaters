@@ -27,6 +27,17 @@ final class FloodRepositoryImpl: FloodRepository {
     
     func deleteFlood(_ report: FloodReport) {
         
+        guard let reportID = report.documentID else { return }
+        
+        self.db.collection("flooded-regions").document(reportID).delete { error in
+            if let error {
+                print(FloodError.firebaseError(description: error.localizedDescription))
+                
+            } else {
+                print("✅ Document successfully deleted")
+            }
+        }
+        
     }
 
     func saveNewFlood(_ report: FloodReport)  {
@@ -36,11 +47,15 @@ final class FloodRepositoryImpl: FloodRepository {
             data: report.toDictionary() as [String : Any]
         ) { error in
             if let error {
-                print("⚠️ Error: \(error.localizedDescription)")
+                print(FloodError.firebaseError(description: error.localizedDescription))
+                
             } else if let documentID = documentRef?.documentID {
                 documentRef?.updateData(["documentID": documentID]) { error in
                     if let error = error {
-                        print("Error updating document: \(error)")
+                        print(FloodError.custom(description: error.localizedDescription))
+                        
+                    } else {
+                        print("✅ Document successfully saved")
                     }
                 }
             }

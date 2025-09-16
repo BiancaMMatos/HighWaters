@@ -10,12 +10,13 @@ import Foundation
 protocol FloodServiceProtocol {
     func removeFloodListener()
     func saveFlood(_ report: FloodReport)
+    func deleteFlood(_ report: FloodReport)
     func observeFloods(update: @escaping (Result<[FloodReport]?, Error>) -> Void)
 }
 
 
 final class FloodService: FloodServiceProtocol {
-    
+
     let repository: FloodRepository = FloodRepositoryImpl()
     
     func observeFloods(update: @escaping (Result<[FloodReport]?, any Error>) -> Void) {
@@ -24,6 +25,10 @@ final class FloodService: FloodServiceProtocol {
     
     func saveFlood(_ report: FloodReport) {
         repository.saveNewFlood(report)
+    }
+    
+    func deleteFlood(_ report: FloodReport) {
+        repository.deleteFlood(report)
     }
     
     func removeFloodListener() {

@@ -73,6 +73,10 @@ class LocationViewModel: ObservableObject {
         service.saveFlood(floodReport)
     }
     
+    func deleteFlood(_ flood: FloodReport) {
+        service.deleteFlood(flood)
+    }
+    
     func observeFloods() {
         isLoading = true
         service.observeFloods { [weak self] result in
@@ -82,14 +86,12 @@ class LocationViewModel: ObservableObject {
                 case .success(let floods):
                     self?.annotations.removeAll()
                     floods?.forEach {
-                        self?.addAnnotation(.init(latitude: $0.latitude,
-                                                  longitude: $0.longitude)
-                        )
+                        self?.addAnnotation($0)
                     }
                     self?.showError = false
                     
                 case .failure(let error):
-                    print("🚨 Firebase Error: \(error.localizedDescription)")
+                    print(FloodError.firebaseError(description: error.localizedDescription))
                     self?.annotations.removeAll()
                     self?.showError = true
                 }

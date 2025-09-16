@@ -5,17 +5,19 @@
 //  Created by Bianca Maciel on 25/08/25.
 //
 
+import MapKit
 import CoreLocation
 
 class LocationManager: NSObject, ObservableObject {
     
     private let manager = CLLocationManager()
     @Published var currentLocation: CLLocationCoordinate2D?
-    
+    @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined
     
     override init() {
         super.init()
         manager.delegate = self
+        manager.desiredAccuracy = kCLLocationAccuracyBest
         manager.requestWhenInUseAuthorization()
     }
     
@@ -23,8 +25,19 @@ class LocationManager: NSObject, ObservableObject {
         manager.startUpdatingLocation()
     }
     
+    func centerToUserRegion() -> MKCoordinateRegion? {
+        guard let currentLocation = currentLocation else {
+            print("‼️ Location not available.")
+            return nil
+        }
+        
+        return MKCoordinateRegion(
+            center: currentLocation,
+            span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+        )
+    }
+    
 }
-
 
 extension LocationManager: CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
@@ -32,7 +45,8 @@ extension LocationManager: CLLocationManagerDelegate {
     }
     
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        if manager.authorizationStatus == .authorizedWhenInUse || manager.authorizationStatus == .authorizedAlways {
+        authorizationStatus = manager.authorizationStatus
+        if authorizationStatus == .authorizedWhenInUse || authorizationStatus == .authorizedAlways {
             manager.startUpdatingLocation()
         }
     }

@@ -14,14 +14,20 @@ struct MapView: View {
     
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
-            if viewModel.isLoading {
-                LoadingView()
-                    .ignoresSafeArea(.all)
-            } else {
-                LocationView(region: $viewModel.region,
-                             annotations: viewModel.annotations
-                )
+            if !viewModel.isLoading {
+                LocationView(annotations: viewModel.annotations, region: $viewModel.region)
                 .ignoresSafeArea(.all)
+            }
+            
+            if viewModel.isLoading {
+                /// Adding View behind Loading
+                LocationView(annotations: viewModel.annotations, region: $viewModel.region)
+                .ignoresSafeArea(.all)
+                
+                LoadingView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color.black.opacity(0.4))
+                    .ignoresSafeArea(.all)
             }
             
             HStack(alignment: .center) {
@@ -48,6 +54,7 @@ struct MapView: View {
                 })
                 .padding()
             }
+            .padding(.top, 15)
         }
         .alert(isPresented: $viewModel.showError) {
             Alert(
@@ -63,19 +70,9 @@ struct MapView: View {
 extension MapView {
     
     private func addFloodAnnotation() {
-        /// Getting where the user is
-        let centerOfCoordinate = viewModel.region.center
-        
-        /// Adding a new annotation
-        viewModel.addAnnotation(at: centerOfCoordinate,
-                                title: "Flood #\(floodCount + 1)"
-        )
-        
-        viewModel.saveFlood()
-        
+        viewModel.saveFlood() /// Adding a new annotation
         floodCount += 1
     }
-    
 }
 
 

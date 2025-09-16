@@ -22,10 +22,19 @@ struct HighWatersApp: App {
 
 
 class AppDelegate: NSObject, UIApplicationDelegate {
-  func application(_ application: UIApplication,
-                   didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
-    FirebaseApp.configure()
-
-    return true
-  }
+    func application(_ application: UIApplication,
+                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+        FirebaseApp.configure()
+        
+        if FirebaseApp.app() == nil {
+            print("🚨 Firebase was not configured")
+        } else {
+            print("✅ Firebase was configured successfully")
+            if let options = FirebaseOptions(contentsOfFile: Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist")!) {
+                print("📋 ProjectID: \(options.projectID ?? "N/A")")
+            }
+        }
+        
+        return true
+    }
 }

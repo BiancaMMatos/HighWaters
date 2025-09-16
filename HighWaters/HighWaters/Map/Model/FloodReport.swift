@@ -35,12 +35,17 @@ extension FloodReport {
     }
     
     
-    func toDictionary() -> [String : Any?] {
-        return [
-            "documentID": self.documentID ?? nil,
+    func toDictionary() -> [String : Any] {
+        var dictionary: [String : Any] = [
             "latitude": self.latitude,
             "longitude": self.longitude,
             "reportedDate": self.reportedDate.formatAsString()
         ]
+        
+        if let documentID = self.documentID {
+            dictionary["documentID"] = documentID
+        }
+        
+        return dictionary
     }
 }

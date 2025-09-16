@@ -15,15 +15,13 @@ struct MapView: View {
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
             if !viewModel.isLoading {
-                LocationView(region: $viewModel.region,
-                             annotations: viewModel.annotations)
+                LocationView(annotations: viewModel.annotations, region: $viewModel.region)
                 .ignoresSafeArea(.all)
             }
             
             if viewModel.isLoading {
                 /// Adding View behind Loading
-                LocationView(region: $viewModel.region,
-                             annotations: viewModel.annotations)
+                LocationView(annotations: viewModel.annotations, region: $viewModel.region)
                 .ignoresSafeArea(.all)
                 
                 LoadingView()

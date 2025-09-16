@@ -11,9 +11,9 @@ import SwiftUI
 struct LocationView: UIViewRepresentable {
     
     // MARK: - Properties
-    @Binding var region: MKCoordinateRegion
     var annotations: [MKAnnotation] = []
-    
+    @Binding var region: MKCoordinateRegion
+    @StateObject private var viewModel = LocationViewModel()
     
     // MARK: - Functions
     func makeCoordinator() -> Coordinator {
@@ -55,11 +55,24 @@ struct LocationView: UIViewRepresentable {
                 annotationView = MKAnnotationView(annotation: annotation, reuseIdentifier: "FloodAnnotationView")
                 annotationView?.canShowCallout = true
                 annotationView?.image = UIImage(named: "flood-annotation")
-                annotationView?.rightCalloutAccessoryView = UIButton.buttonForRightAccessoryView()
                 
+                /// Configuring delete button
+                let deleteButton = UIButton.buttonForRightAccessoryView()
+                deleteButton.tag = 1001 /// Unique identifier to the button
+                annotationView?.rightCalloutAccessoryView = deleteButton
+            } else {
+                annotationView?.annotation = annotation
             }
             
             return annotationView
+            
+        }
+        
+        func mapView(_ mapView: MKMapView, annotationView view: MKAnnotationView, calloutAccessoryControlTapped control: UIControl) {
+            guard control.tag == 1001 else { return } /// Verify if it is the 'trash' button
+            guard let floodAnnotation = view.annotation as? FloodAnnotation else { return }
+            
+            parent.viewModel.deleteFlood(floodAnnotation.flood)
             
         }
         
